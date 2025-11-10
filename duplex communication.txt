@@ -1,0 +1,80 @@
+//duplex communication
+//server
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+int main() {
+    int sockfd, newsock;
+    struct sockaddr_in server, client;
+    char buffer[1024];
+    socklen_t len = sizeof(client);
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(8080);
+
+    bind(sockfd, (struct sockaddr*)&server, sizeof(server));
+    listen(sockfd, 3);
+    printf("Server waiting for connection...\n");
+
+    newsock = accept(sockfd, (struct sockaddr*)&client, &len);
+    printf("Connected to client!\n");
+
+    while (1) {
+        // Receive message
+        recv(newsock, buffer, sizeof(buffer), 0);
+        printf("Client: %s\n", buffer);
+
+        // Send reply
+        printf("Server: ");
+        fgets(buffer, sizeof(buffer), stdin);
+        send(newsock, buffer, strlen(buffer) + 1, 0);
+
+        if (strncmp(buffer, "exit", 4) == 0) break;
+    }
+
+    close(newsock);
+    close(sockfd);
+    return 0;
+}
+
+//client
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+int main() {
+    int sockfd;
+    struct sockaddr_in server;
+    char buffer[1024];
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server.sin_port = htons(8080);
+
+    connect(sockfd, (struct sockaddr*)&server, sizeof(server));
+    printf("Connected to server!\n");
+
+    while (1) {
+        // Send message
+        printf("Client: ");
+        fgets(buffer, sizeof(buffer), stdin);
+        send(sockfd, buffer, strlen(buffer) + 1, 0);
+
+        if (strncmp(buffer, "exit", 4) == 0) break;
+
+        // Receive reply
+        recv(sockfd, buffer, sizeof(buffer), 0);
+        printf("Server: %s\n", buffer);
+    }
+
+    close(sockfd);
+    return 0;
+}
