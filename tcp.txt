@@ -120,3 +120,33 @@ int main(int argc, char *argv[]) {
     close(sock);
     return 0;
 }
+//eg
+void process_data(char *msg) {
+    int n = strlen(msg);
+    if (msg[n-1] == '\n') n--;  // remove newline
+    for (int i = 0; i < n/2; i++) {
+        char temp = msg[i];
+        msg[i] = msg[n-1-i];
+        msg[n-1-i] = temp;
+    }
+    msg[n] = '\0';
+}
+
+void process_data(char *msg) {
+    double op1, op2, result;
+    char op;
+    sscanf(msg, "%lf %c %lf", &op1, &op, &op2);
+
+    switch(op) {
+        case '+': result = op1 + op2; break;
+        case '-': result = op1 - op2; break;
+        case '*': result = op1 * op2; break;
+        case '/': result = (op2 != 0) ? op1 / op2 : 0; break;
+        case '^': result = pow(op1, op2); break;
+        default: sprintf(msg, "Invalid operator\n"); return;
+    }
+    sprintf(msg, "%.2lf %c %.2lf = %.2lf", op1, op, op2, result);
+}
+
+
+
